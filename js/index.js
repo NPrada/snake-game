@@ -1,7 +1,8 @@
 var myGamePiece;
 
 function startGame() {
-    myGamePiece = new component(15, 15, "black", 190, 190);
+    myGamePiece = new component(15, 15, "black", 190, 190); //this creates the snake
+    myObstacle  = new component(12, 12, "green", 300, 120); //this creates some food
     myGameArea.start();
 }
 
@@ -16,6 +17,9 @@ var myGameArea = {
     },
     clear: function () {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    },
+    stop : function() {
+        clearInterval(this.interval);   //not sure what this does
     }
 };
 
@@ -29,18 +33,48 @@ function component(width, height, color, x, y) {
     this.update = function () {
         ctx = myGameArea.context;
         ctx.fillStyle = color;
-        document.getElementById("xSpeed").innerHTML = this.speedX;
-        document.getElementById("ySpeed").innerHTML = this.speedY;
+        document.getElementById("xSpeed").innerHTML = this.speedX; //these are here just for debugging purpuses
+        document.getElementById("ySpeed").innerHTML = this.speedY; //these are here just for debugging purpuses
         ctx.fillRect(this.x, this.y, this.width, this.height);
     };
     this.newPos = function () {
         this.x += this.speedX;
         this.y += this.speedY;
+    };
+    this.crashWith = function(otherobj) {
+        var myleft = this.x;
+        var myright = this.x + (this.width);
+        var mytop = this.y;
+        var mybottom = this.y + (this.height);
+        var otherleft = otherobj.x;
+        var otherright = otherobj.x + (otherobj.width);
+        var othertop = otherobj.y;
+        var otherbottom = otherobj.y + (otherobj.height);
+
+        //first the crash condition is set to true then its changed to false
+        //if its not colliding to anyhting then the crash value is chanaged to false
+        var crash = true;
+        if ((mybottom < othertop) ||
+            (mytop > otherbottom) ||
+            (myright < otherleft) ||
+            (myleft > otherright)) {
+            crash = false;
+        }
+        return crash;
     }
+
 }
 
 function updateGameArea() {
+
+    //if the snake collides with the food then the foods pos i chnaged
+    if (myGamePiece.crashWith(myObstacle)) {
+        myObstacle.x = setRandPos();
+        myObstacle.y = setRandPos();
+    }
+
     myGameArea.clear();
+    myObstacle.update();
     myGamePiece.newPos();
     myGamePiece.update();
 }
@@ -91,7 +125,14 @@ function uniKeyCode(event) {
 function checkValidMove(currSpeed, n) { //this runs a check to see if we are allowed to go that fast
 
     var x = currSpeed + n;
-    var maxSpeed = 1;       //sets the maxspeed for the game
+    var maxSpeed = 1;       //sets the max speed for the game
 
     return (x >= -maxSpeed && x <= maxSpeed);
+}
+
+function setRandPos() {
+    //this is used so that you dont get a position outside the canvas
+    var maxNumber = myGameArea.canvas.width - myGamePiece.width;
+
+    return Math.floor(Math.random() * maxNumber);
 }
