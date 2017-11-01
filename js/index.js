@@ -1,8 +1,11 @@
 var myGamePiece;
 
+var maxSpeed = 2;       //sets the max speed for the game
+
 function startGame() {
     myGamePiece = new component(15, 15, "black", 190, 190); //this creates the snake
-    myObstacle  = new component(12, 12, "green", 300, 120); //this creates some food
+    myObstacle  = new component(12, 12, "green", 190, 120); //this creates some food
+    tailSections = [];
     myGameArea.start();
 }
 
@@ -24,6 +27,7 @@ var myGameArea = {
 };
 
 function component(width, height, color, x, y) {
+    console.log("component created");
     this.width = width;
     this.height = height;
     this.speedX = 0;
@@ -67,43 +71,53 @@ function component(width, height, color, x, y) {
 
 function updateGameArea() {
 
-    //if the snake collides with the food then the foods pos i chnaged
+    //if the snake collides with the food then the foods pos i changes
     if (myGamePiece.crashWith(myObstacle)) {
         myObstacle.x = setRandPos();
         myObstacle.y = setRandPos();
+
+        tailSections.push(new component(15, 15, "black", myGamePiece.x+15, myGamePiece.y+15))
     }
 
     myGameArea.clear();
     myObstacle.update();
     myGamePiece.newPos();
+
+    //this is used to update the position of every tail section
+    for(var i=0;i<tailSections.length;i++){
+        if(typeof tailSections[i] != 'undefined'){
+            tailSections[i].update();
+        }
+    }
+
     myGamePiece.update();
 }
 
 function moveup() {
-    if (checkValidMove(myGamePiece.speedY, -1)) { //checks if you can go faster
+    if (checkValidMove(myGamePiece.speedY, -maxSpeed)) { //checks if you can go faster
         myGamePiece.speedX = 0;
-        myGamePiece.speedY -= 1;
+        myGamePiece.speedY -= maxSpeed;
     }
 }
 
 function movedown() {
-    if (checkValidMove(myGamePiece.speedY, 1)) {
+    if (checkValidMove(myGamePiece.speedY, maxSpeed)) {
         myGamePiece.speedX =0; //this is done to disable the opposite axis movement so that you cant move diagonally
-        myGamePiece.speedY += 1;
+        myGamePiece.speedY += maxSpeed;
     }
 }
 
 function moveleft() {
-    if (checkValidMove(myGamePiece.speedX, -1)) {
+    if (checkValidMove(myGamePiece.speedX, -maxSpeed)) {
         myGamePiece.speedY =0;
-        myGamePiece.speedX -= 1;
+        myGamePiece.speedX -= maxSpeed;
     }
 }
 
 function moveright() {
-    if (checkValidMove(myGamePiece.speedX, 1)) {
+    if (checkValidMove(myGamePiece.speedX, maxSpeed)) {
         myGamePiece.speedY =0;
-        myGamePiece.speedX += 1;
+        myGamePiece.speedX += maxSpeed;
     }
 }
 function uniKeyCode(event) {
@@ -129,12 +143,10 @@ function uniKeyCode(event) {
 function checkValidMove(currSpeed, n) { //this runs a check to see if we are allowed to go that fast
 
     var x = currSpeed + n;
-    var maxSpeed = 1;       //sets the max speed for the game
-
+    //maxspeed is set at the beginning
     return (x >= -maxSpeed && x <= maxSpeed && x != 0);
 
 }
-
 
 function setRandPos() {
     //this is used so that you dont get a position outside the canvas
