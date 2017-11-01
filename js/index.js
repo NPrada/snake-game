@@ -81,24 +81,28 @@ function updateGameArea() {
 
 function moveup() {
     if (checkValidMove(myGamePiece.speedY, -1)) { //checks if you can go faster
+        myGamePiece.speedX = 0;
         myGamePiece.speedY -= 1;
     }
 }
 
 function movedown() {
     if (checkValidMove(myGamePiece.speedY, 1)) {
+        myGamePiece.speedX =0; //this is done to disable the opposite axis movement so that you cant move diagonally
         myGamePiece.speedY += 1;
     }
 }
 
 function moveleft() {
     if (checkValidMove(myGamePiece.speedX, -1)) {
+        myGamePiece.speedY =0;
         myGamePiece.speedX -= 1;
     }
 }
 
 function moveright() {
     if (checkValidMove(myGamePiece.speedX, 1)) {
+        myGamePiece.speedY =0;
         myGamePiece.speedX += 1;
     }
 }
@@ -127,8 +131,10 @@ function checkValidMove(currSpeed, n) { //this runs a check to see if we are all
     var x = currSpeed + n;
     var maxSpeed = 1;       //sets the max speed for the game
 
-    return (x >= -maxSpeed && x <= maxSpeed);
+    return (x >= -maxSpeed && x <= maxSpeed && x != 0);
+
 }
+
 
 function setRandPos() {
     //this is used so that you dont get a position outside the canvas
