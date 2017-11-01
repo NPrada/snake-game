@@ -4,7 +4,7 @@ var maxSpeed = 2;       //sets the max speed for the game
 
 function startGame() {
     myGamePiece = new component(15, 15, "black", 190, 190); //this creates the snake
-    myObstacle  = new component(12, 12, "green", 190, 120); //this creates some food
+    myObstacle = new component(12, 12, "green", 190, 120); //this creates some food
     tailSections = [];
     myGameArea.start();
 }
@@ -21,13 +21,12 @@ var myGameArea = {
     clear: function () {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     },
-    stop : function() {
+    stop: function () {
         clearInterval(this.interval);   //not sure what this does
     }
 };
 
 function component(width, height, color, x, y) {
-    console.log("component created");
     this.width = width;
     this.height = height;
     this.speedX = 0;
@@ -45,7 +44,7 @@ function component(width, height, color, x, y) {
         this.x += this.speedX;
         this.y += this.speedY;
     };
-    this.crashWith = function(otherobj) {
+    this.crashWith = function (otherobj) {
         var myleft = this.x;
         var myright = this.x + (this.width);
         var mytop = this.y;
@@ -75,8 +74,8 @@ function updateGameArea() {
     if (myGamePiece.crashWith(myObstacle)) {
         myObstacle.x = setRandPos();
         myObstacle.y = setRandPos();
+        spawnTail();
 
-        tailSections.push(new component(15, 15, "black", myGamePiece.x+15, myGamePiece.y+15))
     }
 
     myGameArea.clear();
@@ -84,8 +83,8 @@ function updateGameArea() {
     myGamePiece.newPos();
 
     //this is used to update the position of every tail section
-    for(var i=0;i<tailSections.length;i++){
-        if(typeof tailSections[i] != 'undefined'){
+    for (var i = 0; i < tailSections.length; i++) {
+        if (typeof tailSections[i] != 'undefined') {
             tailSections[i].update();
         }
     }
@@ -102,21 +101,21 @@ function moveup() {
 
 function movedown() {
     if (checkValidMove(myGamePiece.speedY, maxSpeed)) {
-        myGamePiece.speedX =0; //this is done to disable the opposite axis movement so that you cant move diagonally
+        myGamePiece.speedX = 0; //this is done to disable the opposite axis movement so that you cant move diagonally
         myGamePiece.speedY += maxSpeed;
     }
 }
 
 function moveleft() {
     if (checkValidMove(myGamePiece.speedX, -maxSpeed)) {
-        myGamePiece.speedY =0;
+        myGamePiece.speedY = 0;
         myGamePiece.speedX -= maxSpeed;
     }
 }
 
 function moveright() {
     if (checkValidMove(myGamePiece.speedX, maxSpeed)) {
-        myGamePiece.speedY =0;
+        myGamePiece.speedY = 0;
         myGamePiece.speedX += maxSpeed;
     }
 }
@@ -153,4 +152,23 @@ function setRandPos() {
     var maxNumber = myGameArea.canvas.width - myGamePiece.width;
 
     return Math.floor(Math.random() * maxNumber);
+}
+
+function spawnTail() { //this is all done so that the new tail part is spawned at the right spot
+
+    var headSize = myGamePiece.width; //this is to fetch the size of the head in px
+
+    if (myGamePiece.speedX > 0 && myGamePiece.speedX != 0) {
+        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x - headSize, myGamePiece.y))
+    }
+    if (myGamePiece.speedX < 0 && myGamePiece.speedX != 0) {
+        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x + headSize, myGamePiece.y))
+    }
+    if (myGamePiece.speedY > 0 && myGamePiece.speedY != 0) {
+        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y - headSize))
+    }
+    if (myGamePiece.speedY < 0 && myGamePiece.speedY != 0) {
+        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y + headSize))
+    }
+
 }
