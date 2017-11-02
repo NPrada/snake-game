@@ -5,15 +5,15 @@ var maxSpeed = 15;       //sets the max speed for the game
 
 var headPos = []; //(x,y) sets the starting head positon, it is also used to log the heads position when the head turns
 var headSize = 15;  //size of the head
-
+var StartingTailLength = 7;
 function startGame() {
 
 
     myGamePiece = new component(headSize, headSize, "blue", 190, 190); //this creates the snake
-    //headPos = [[myGamePiece.x,myGamePiece.y,"undefined"]];
-    tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y + headSize));//create first piece of the tail
-    tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y + headSize*2));//create first piece of the tail
-    tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y + headSize*3));//create first piece of the tail
+
+    for (var i=0;i<StartingTailLength; i++){
+        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y + headSize *(i+1)));//create first piece of the tail
+    }
     myObstacle = new component(12, 12, "green", 190, 120); //this creates some food
 
     myGameArea.start();
