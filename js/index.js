@@ -1,11 +1,21 @@
 var myGamePiece;
+var tailSections = [];
 
-var maxSpeed = 2;       //sets the max speed for the game
+var maxSpeed = 15;       //sets the max speed for the game
+
+var headPos = []; //(x,y) sets the starting head positon, it is also used to log the heads position when the head turns
+var headSize = 15;  //size of the head
 
 function startGame() {
-    myGamePiece = new component(15, 15, "black", 190, 190); //this creates the snake
+
+
+    myGamePiece = new component(headSize, headSize, "blue", 190, 190); //this creates the snake
+    //headPos = [[myGamePiece.x,myGamePiece.y,"undefined"]];
+    tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y + headSize));//create first piece of the tail
+    tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y + headSize*2));//create first piece of the tail
+    tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y + headSize*3));//create first piece of the tail
     myObstacle = new component(12, 12, "green", 190, 120); //this creates some food
-    tailSections = [];
+
     myGameArea.start();
 }
 
@@ -16,7 +26,7 @@ var myGameArea = {
         this.canvas.height = 400;
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-        this.interval = setInterval(updateGameArea, 20);
+        this.interval = setInterval(updateGameArea, 150);
     },
     clear: function () {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -40,7 +50,7 @@ function component(width, height, color, x, y) {
         document.getElementById("ySpeed").innerHTML = this.speedY; //these are here just for debugging purpuses
         ctx.fillRect(this.x, this.y, this.width, this.height);
     };
-    this.newPos = function () {
+    this.newPos = function () { //used to translate the current speed to the actual position
         this.x += this.speedX;
         this.y += this.speedY;
     };
@@ -70,21 +80,26 @@ function component(width, height, color, x, y) {
 
 function updateGameArea() {
 
-    //if the snake collides with the food then the foods pos i changes
+    //if the snake collides with the food then the foods pos i changes and a tailpiece is spawned
     if (myGamePiece.crashWith(myObstacle)) {
         myObstacle.x = setRandPos();
         myObstacle.y = setRandPos();
         spawnTail();
-
     }
 
     myGameArea.clear();
     myObstacle.update();
     myGamePiece.newPos();
+    console.log(headPos.length);
+
+    if (headPos.length) { //used so that headPos is not accessed by tailMove() when its empty
+        tailMove();//check if the tail needs to move in this gametick
+    }
 
     //this is used to update the position of every tail section
     for (var i = 0; i < tailSections.length; i++) {
         if (typeof tailSections[i] != 'undefined') {
+            tailSections[i].newPos();
             tailSections[i].update();
         }
     }
@@ -94,20 +109,33 @@ function updateGameArea() {
 
 function moveup() {
     if (checkValidMove(myGamePiece.speedY, -maxSpeed)) { //checks if you can go faster
-        myGamePiece.speedX = 0;
+
+        if (myGamePiece.speedY == 0 && myGamePiece.speedX ==0){ //this is for the beginning only if the head is still then also make the tail move
+            for (var i=0;i<tailSections.length;i++){
+                tailSections[i].speedY -= maxSpeed;
+            }
+        }else { //otherwise log it as a turn
+            headPos.push([myGamePiece.x, myGamePiece.y, "up"]);
+        }
+
+        myGamePiece.speedX = 0; //this is done to disable the opposite axis movement so that you cant move diagonally
         myGamePiece.speedY -= maxSpeed;
     }
 }
 
 function movedown() {
     if (checkValidMove(myGamePiece.speedY, maxSpeed)) {
-        myGamePiece.speedX = 0; //this is done to disable the opposite axis movement so that you cant move diagonally
+
+        headPos.push([myGamePiece.x, myGamePiece.y, "down"]);
+        myGamePiece.speedX = 0;
         myGamePiece.speedY += maxSpeed;
     }
 }
 
 function moveleft() {
     if (checkValidMove(myGamePiece.speedX, -maxSpeed)) {
+
+        headPos.push([myGamePiece.x, myGamePiece.y, "left"]); //log the heads position in this turn
         myGamePiece.speedY = 0;
         myGamePiece.speedX -= maxSpeed;
     }
@@ -115,27 +143,48 @@ function moveleft() {
 
 function moveright() {
     if (checkValidMove(myGamePiece.speedX, maxSpeed)) {
+
+        headPos.push([myGamePiece.x, myGamePiece.y, "right"]);
         myGamePiece.speedY = 0;
         myGamePiece.speedX += maxSpeed;
     }
 }
-function uniKeyCode(event) {
-    var key = event.keyCode;
-    switch (key) {
-        case 38:
-            moveup();
+
+function tailMove() {//used to make the tail move in a direction at the right time
+    //console.log(headPos);
+    for (var i = 0; i < tailSections.length; i++) {
+        for (var k=0;k<headPos.length;k++){
+            if (tailSections[i].x == headPos[k][0] && tailSections[i].y == headPos[k][1]) { //of this tail section is in the heads previous turn position do this
+                tailDirection(headPos[k][2], i); //[0][2] stores the direction the head turned at those coordinates
+                if (i == tailSections.length-1){//this means that thi is the last piece of the tail so we should delete this turn position
+                    headPos.shift();        //remove the oldest turn move
+                }
+            }
+        }
+    }
+}
+
+function tailDirection(direction, sectionNum) { //takes the tail section number
+
+    switch (direction) {
+        case "up":
+            tailSections[sectionNum].speedX = 0;
+            tailSections[sectionNum].speedY -= maxSpeed;
             break;
-        case 40:
-            movedown();
+        case "down":
+            tailSections[sectionNum].speedX = 0;
+            tailSections[sectionNum].speedY += maxSpeed;
             break;
-        case 37:
-            moveleft();
+        case "left":
+            tailSections[sectionNum].speedY = 0;
+            tailSections[sectionNum].speedX -= maxSpeed;
             break;
-        case 39:
-            moveright();
+        case "right":
+            tailSections[sectionNum].speedY = 0;
+            tailSections[sectionNum].speedX += maxSpeed;
             break;
         default:
-            console.log("invalid")
+            console.log("invalid movement key")
     }
 }
 
@@ -159,16 +208,39 @@ function spawnTail() { //this is all done so that the new tail part is spawned a
     var headSize = myGamePiece.width; //this is to fetch the size of the head in px
 
     if (myGamePiece.speedX > 0 && myGamePiece.speedX != 0) {
-        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x - headSize, myGamePiece.y))
+        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x - headSize, myGamePiece.y));
+        tailSections[tailSections.length - 1].speedX += maxSpeed;
     }
     if (myGamePiece.speedX < 0 && myGamePiece.speedX != 0) {
-        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x + headSize, myGamePiece.y))
+        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x + headSize, myGamePiece.y));
+        tailSections[tailSections.length - 1].speedX -= maxSpeed;
     }
     if (myGamePiece.speedY > 0 && myGamePiece.speedY != 0) {
-        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y - headSize))
+        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y - headSize));
+        tailSections[tailSections.length - 1].speedY += maxSpeed;
     }
     if (myGamePiece.speedY < 0 && myGamePiece.speedY != 0) {
-        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y + headSize))
+        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y + headSize));
+        tailSections[tailSections.length - 1].speedY -= maxSpeed;
     }
+}
 
+function uniKeyCode(event) { //call the right result after the correct key is pressed
+    var key = event.keyCode;
+    switch (key) {
+        case 38:
+            moveup();
+            break;
+        case 40:
+            movedown();
+            break;
+        case 37:
+            moveleft();
+            break;
+        case 39:
+            moveright();
+            break;
+        default:
+            console.log("invalid movement key")
+    }
 }
