@@ -1,13 +1,12 @@
 var pixelSize = 20;      //size of the squares in pixels
 var canvasSize = 600;    //size of the canvas in pixels
+var frameRate = 100; //how much time between frames
 
 var tailLength = 0;
-var startingPos = [180,180];
+var startingPos = [180,180]; // x, y
 var headPos =[];
 headPos[0] = startingPos;
-
-var frameRate = 100;
-
+var tailPiece = [];
 
 function startGame() {
 
@@ -25,7 +24,15 @@ function run() {
     }
 
     gameArea.clear();
+
     snake.newPos();
+    for (var i =0;i<tailPiece.length;i++){
+        tailPiece[i].x = headPos[i][0];
+        tailPiece[i].y = headPos[i][1];
+        tailPiece[i].update()
+    }
+
+
     snake.update();
 
     food.update();

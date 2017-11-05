@@ -12,23 +12,39 @@ function Snake(color, x, y) {
         ctx.fillRect(this.x, this.y, this.width, this.height);
     };
     this.newPos = function () { //used to translate the current speed to the actual position
-        headPos.push(this.x,this.y);
-        //alert(headPos);
+        headPos.push([this.x,this.y]);
         headPos.shift();
-
-        headPos.shift();
-        //console.log(headPos)
-        //alert(headPos)
+        console.log(headPos[0] +" " + headPos[1]);
         this.x += this.speedX * pixelSize; //this is so that the snake moves by 20pixels at a time
         this.y += this.speedY * pixelSize;
+
     };
     this.eat = function (otherobj) {
         var food = otherobj;
         if(this.x === food.x && this.y === food.y){ //checks if the heads position matches the foods
-            //headPos.push(this.x,this.y);
-            return true;
+
+            if (tailLength>=headPos.length){ //this is because we want the array to match the length of the tail
+                headPos.push([this.x,this.y]);
+            }
+            tailPiece.push(new Tail("red",headPos[tailLength][0],headPos[tailLength][1]));
+            tailLength++;
+
+            return true; //yes the snake did eat the food
         }
     }
+}
+
+function Tail(color, x, y) {
+    this.width = pixelSize;
+    this.height = pixelSize;
+    this.x = x;
+    this.y = y;
+
+    this.update = function () {
+        ctx = gameArea.context;
+        ctx.fillStyle = color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    };
 }
 
 function Food(color, x, y) {
