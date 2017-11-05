@@ -1,9 +1,9 @@
 var pixelSize = 20;      //size of the squares in pixels
-var canvasSize = 600;    //size of the canvas in pixels
-var frameRate = 110; //how much time between frames
+var canvasSize = 600;    //size of the canvas in pixels needs to be a multiple of the pixel size
+var frameRate = 100; //how much time between frames
 
 var tailLength = 0;
-var startingPos = [300, 580]; // x, y
+var startingPos = [300, 480]; // x, y
 var headPos = [];
 headPos[0] = startingPos;
 var tailPiece = [];
@@ -18,14 +18,15 @@ function startGame() {
 }
 
 function run() { //the order in which these things are place is quite important
+
     gameArea.clear();
 
     //if the snake collides with the food then the foods pos i changes and a tailpiece is spawned
     if (snake.eat(food)) {
         food.newFood()
     }
-    food.update(); //updates the positon of food
 
+    food.update(); //updates the positon of food
     checkMove(); //checks if the move its about to do is valid
     snake.newPos();
 
