@@ -31,25 +31,25 @@ var gameArea = {
 function mainMenu() {
     ctx = gameArea.context;
     ctx.font = "30px Arial";
-    ctx.strokeText("Welcome to Snake",170,50);
-    ctx.strokeText("Press the any of the arrow keys to start",35,300);
+    ctx.strokeText("Welcome to Snake", 170, 50);
+    ctx.strokeText("Press the any of the arrow keys to start", 35, 300);
 }
 
 function gameOver() {
     gameState = "gameOver";
 
-     tailLength = 0;
-     startingPos = [300, 480]; // x, y
-     headPos = [];
+    tailLength = 0;
+    startingPos = [300, 480]; // x, y
+    headPos = [];
     headPos[0] = startingPos;
-     tailPiece = [];
-     move = [[0, 0]];
+    tailPiece = [];
+    move = [[0, 0]];
     gameArea.stop();
 
     ctx = gameArea.context;
     ctx.font = "30px Arial";
-    ctx.strokeText("Game Over",170,50);
-    ctx.strokeText("Press the any of the arrow keys to start",35,300);
+    ctx.strokeText("Game Over", 170, 50);
+    ctx.strokeText("Press the any of the arrow keys to start", 35, 300);
 }
 
 function startGame() {
@@ -63,10 +63,10 @@ function startGame() {
 function run() { //the order in which these things are place is quite important
     console.log(gameState); //log in the console the game state
     gameArea.clear();
-    if (gameState === "beforeStart"){
+    if (gameState === "beforeStart") {
         mainMenu()
     }
-    else if(gameState === "gameOver"){
+    else if (gameState === "gameOver") {
         gameOver()
     }
     //if the snake collides with the food then the foods pos i changes and a tailpiece is spawned
@@ -108,7 +108,7 @@ function checkMove() {
 function checkCollision() {
     if (snake.x + snake.speedX > canvasSize || snake.x < 0 || snake.y < 0 || snake.y + snake.speedY > canvasSize) {
         gameState = "game Over";
-        if (tailLength>highScore){
+        if (tailLength > highScore) {
             highScore = tailLength
         }
         gameOver();
@@ -116,7 +116,7 @@ function checkCollision() {
     for (var i = 0; i < tailPiece.length; i++) {
         if (snake.x === tailPiece[i].x && snake.y === tailPiece[i].y) {
             gameState = "game Over";
-            if (tailLength>highScore){
+            if (tailLength > highScore) {
                 highScore = tailLength
             }
             gameOver();
@@ -144,8 +144,8 @@ document.onkeydown = checkKey;
 
 function checkKey(e) {
     e = e || window.event; //this is used for older browser compatibility
-    if(gameState === "gameOver"){
-       startGame()
+    if (gameState === "gameOver") {
+        startGame()
     }
     gameState = "running";
     if (e.keyCode === 38) {
@@ -161,10 +161,11 @@ function checkKey(e) {
         moveright()
     }
 }
+
 //this is used to stop the screen from scrolling up and down when the arrow keys are pressed
-window.addEventListener("keydown", function(e) {
+window.addEventListener("keydown", function (e) {
     // space and arrow keys
-    if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+    if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
         e.preventDefault();
     }
 }, false);
