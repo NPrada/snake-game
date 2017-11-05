@@ -8,9 +8,10 @@ var headPos =[];
 headPos[0] = startingPos;
 var tailPiece = [];
 
+var move=[];
 function startGame() {
 
-    snake = new Snake( "blue", startingPos[0], startingPos[1]); //this creates the snake
+    snake = new Snake( "black", startingPos[0], startingPos[1]); //this creates the snake
     food = new Food("green", 180, 120); //this creates some food
 
     gameArea.start();
@@ -26,18 +27,14 @@ function run() {
     gameArea.clear();
 
     snake.newPos();
+
     for (var i =0;i<tailPiece.length;i++){
-        tailPiece[i].x = headPos[i][0];
-        tailPiece[i].y = headPos[i][1];
+        tailPiece[i].newPos(i);
         tailPiece[i].update()
     }
 
-
     snake.update();
-
     food.update();
-
-
 }
 var gameArea = {
     canvas: document.createElement("canvas"),
