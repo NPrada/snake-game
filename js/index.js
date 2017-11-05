@@ -1,41 +1,44 @@
 var pixelSize = 20;      //size of the squares in pixels
 var canvasSize = 600;    //size of the canvas in pixels
-var frameRate = 100; //how much time between frames
+var frameRate = 110; //how much time between frames
 
 var tailLength = 0;
-var startingPos = [180,180]; // x, y
-var headPos =[];
+var startingPos = [300, 580]; // x, y
+var headPos = [];
 headPos[0] = startingPos;
 var tailPiece = [];
+var move = [[0, -1]];
 
-var move=[];
 function startGame() {
 
-    snake = new Snake( "black", startingPos[0], startingPos[1]); //this creates the snake
+    snake = new Snake("black", startingPos[0], startingPos[1]); //this creates the snake
     food = new Food("green", 180, 120); //this creates some food
 
     gameArea.start();
 }
 
 function run() {
+    gameArea.clear();
 
     //if the snake collides with the food then the foods pos i changes and a tailpiece is spawned
     if (snake.eat(food)) {
-       food.newFood()
+        food.newFood()
     }
 
-    gameArea.clear();
+    checkMove(); //checks if the move its about to do is valid
 
     snake.newPos();
 
-    for (var i =0;i<tailPiece.length;i++){
+    for (var i = 0; i < tailPiece.length; i++) {
         tailPiece[i].newPos(i);
         tailPiece[i].update()
     }
 
     snake.update();
+
     food.update();
 }
+
 var gameArea = {
     canvas: document.createElement("canvas"),
     start: function () {
@@ -52,28 +55,42 @@ var gameArea = {
         clearInterval(this.interval);   //not sure what this does
     }
 };
+//basically there is always the current move stored in here, once a new one is entered then it is compared to see
+//if it is trying to go the opposite way than the current direction. If it is then the last move that is entered is
+//dicarded, otherwise the new move is added to the snake speed and then the first item of the array is removed
+//so that the new one is then set
+function checkMove() {
+    if (move.length > 1) { //this is just for error checking in the code
+
+        if (move[0][0] * move[1][0] === -1 || move[0][1] * move[1][1] === -1) {
+            //invalid move
+            move.pop() //then the last move is removed
+        } else {
+            snake.speedX = move[1][0];
+            snake.speedY = move[1][1];
+            move.shift();
+        }
+    }
+}
 
 function moveup() {
-        snake.speedX = 0; //this is done to disable the opposite axis movement so that you cant move diagonally
-        snake.speedY = -1;
+    move.push([0, -1]);
 }
 
 function movedown() {
-        snake.speedX = 0;
-        snake.speedY = 1;
+    move.push([0, 1]);
 }
 
 function moveleft() {
-        snake.speedY = 0;
-        snake.speedX = -1;
+    move.push([-1, 0]);
 }
 
 function moveright() {
-        snake.speedY = 0;
-        snake.speedX = 1;
+    move.push([1, 0]);
 }
 
 document.onkeydown = checkKey;
+
 function checkKey(e) {
     e = e || window.event; //this is used for older browser compatibility
     if (e.keyCode === 38) {
