@@ -2,15 +2,16 @@ var pixelSize = 20;      //size of the squares in pixels
 var canvasSize = 600;    //size of the canvas in pixels
 
 var tailLength = 0;
-var headPositions =[];
+var startingPos = [180,180];
+var headPos =[];
+headPos[0] = startingPos;
 
 var frameRate = 100;
 
 
 function startGame() {
 
-    snake = new Snake( "blue", 180, 180); //this creates the snake
-
+    snake = new Snake( "blue", startingPos[0], startingPos[1]); //this creates the snake
     food = new Food("green", 180, 120); //this creates some food
 
     gameArea.start();
@@ -19,9 +20,8 @@ function startGame() {
 function run() {
 
     //if the snake collides with the food then the foods pos i changes and a tailpiece is spawned
-    if (snake.crashWith(food)) {
+    if (snake.eat(food)) {
        food.newFood()
-        //spawnTail();
     }
 
     gameArea.clear();
