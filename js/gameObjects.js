@@ -7,6 +7,7 @@ function Snake(color, x, y) {
     this.y = y;
 
     this.update = function () {
+        document.getElementById("score").innerHTML = tailLength;
         ctx = gameArea.context;
         ctx.fillStyle = color;
         ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -26,6 +27,7 @@ function Snake(color, x, y) {
             }
             tailPiece.push(new Tail("black", headPos[tailLength][0], headPos[tailLength][1]));
             tailLength++;
+
             return true; //yes the snake did eat the food
         } else {
             return false;

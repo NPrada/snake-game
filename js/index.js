@@ -17,16 +17,16 @@ function startGame() {
     gameArea.start();
 }
 
-function run() {
+function run() { //the order in which these things are place is quite important
     gameArea.clear();
 
     //if the snake collides with the food then the foods pos i changes and a tailpiece is spawned
     if (snake.eat(food)) {
         food.newFood()
     }
+    food.update(); //updates the positon of food
 
     checkMove(); //checks if the move its about to do is valid
-
     snake.newPos();
 
     for (var i = 0; i < tailPiece.length; i++) {
@@ -35,8 +35,7 @@ function run() {
     }
 
     snake.update();
-
-    food.update();
+    checkCollision(); //this must be kept after the snake.newPos()
 }
 
 var gameArea = {
@@ -69,6 +68,19 @@ function checkMove() {
             snake.speedX = move[1][0];
             snake.speedY = move[1][1];
             move.shift();
+        }
+    }
+}
+
+function checkCollision() {
+    if (snake.x + snake.speedX > canvasSize || snake.x < 0 || snake.y < 0 || snake.y + snake.speedY > canvasSize) {
+        alert("game over");
+        gameArea.stop()
+    }
+    for (var i = 0; i < tailPiece.length; i++) {
+        if (snake.x === tailPiece[i].x && snake.y === tailPiece[i].y) {
+            alert("game over");
+            gameArea.stop()
         }
     }
 }
@@ -106,4 +118,8 @@ function checkKey(e) {
         moveright()
     }
 }
+
+
+
+
 
