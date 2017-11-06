@@ -5,19 +5,31 @@
     <title>Snake by Niccolo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-
     <link rel="stylesheet" href="css/style.css">
-
 </head>
 <body onload="startGame()">
-
-<p>This is the game canvas</p>
-<input type="text" value="Click here" onkeydown="uniKeyCode(event)">
-<p id="xSpeed"></p>
-<p id="ySpeed"></p>
-
+<canvas id="gameCanvas"></canvas>
+<!--<table align="centre">-->
+    <!--<tr>-->
+        <!--<td></td>-->
+        <!--<td><button onclick="moveup()">Up</button></td>-->
+        <!--<td></td>-->
+    <!--</tr>-->
+    <!--<tr>-->
+        <!--<td><button onclick="moveleft()">Left</button></td>-->
+        <!--<td></td>-->
+        <!--<td><button onclick="moveright()">Right</button></td>-->
+    <!--</tr>-->
+    <!--<tr>-->
+        <!--<td></td>-->
+        <!--<td><button onclick="moveleft()">Down</button></td>-->
+        <!--<td></td>-->
+    <!--</tr>-->
+<!--</table>-->
+<p>your current score is: <a id="score">0</a></p>
+<p>Use the arrow keys on the keyboard to move</p>
 </body>
 
 <script src="js/index.js"></script>
-
+<script src="js/gameObjects.js"></script>
 </html>

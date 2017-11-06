@@ -1,246 +1,176 @@
-var myGamePiece;
-var tailSections = [];
+var pixelSize = 20;      //size of the squares in pixels
+var canvasSize = 600;    //size of the canvas in pixels needs to be a multiple of the pixel size
+var frameRate = 100; //how much time between frames
+var highScore = 0;
 
-var maxSpeed = 15;       //sets the max speed for the game
+var gameState = "beforeStart";//
+var tailLength = 0;
+var startingPos = [300, 480]; // x, y
+var headPos = [];
+headPos[0] = startingPos;
+var tailPiece = [];
+var move = [[0, 0]];
 
-var headPos = []; //(x,y) sets the starting head positon, it is also used to log the heads position when the head turns
-var headSize = 15;  //size of the head
-var StartingTailLength = 7;
-function startGame() {
-
-
-    myGamePiece = new component(headSize, headSize, "blue", 190, 190); //this creates the snake
-
-    for (var i=0;i<StartingTailLength; i++){
-        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y + headSize *(i+1)));//create first piece of the tail
-    }
-    myObstacle = new component(12, 12, "green", 190, 120); //this creates some food
-
-    myGameArea.start();
-}
-
-var myGameArea = {
-    canvas: document.createElement("canvas"),
+var gameArea = {
+    canvas: document.getElementById("gameCanvas"),
     start: function () {
-        this.canvas.width = 400;
-        this.canvas.height = 400;
+        this.canvas.width = canvasSize;
+        this.canvas.height = canvasSize;
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-        this.interval = setInterval(updateGameArea, 150);
+        this.interval = setInterval(run, frameRate); //this sets how often the game area is updated
     },
     clear: function () {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     },
     stop: function () {
-        clearInterval(this.interval);   //not sure what this does
+        clearInterval(this.interval);   //this removes the interval so that it does not refresh so often
     }
 };
 
-function component(width, height, color, x, y) {
-    this.width = width;
-    this.height = height;
-    this.speedX = 0;
-    this.speedY = 0;
-    this.x = x;
-    this.y = y;
-    this.update = function () {
-        ctx = myGameArea.context;
-        ctx.fillStyle = color;
-        document.getElementById("xSpeed").innerHTML = this.speedX; //these are here just for debugging purpuses
-        document.getElementById("ySpeed").innerHTML = this.speedY; //these are here just for debugging purpuses
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-    };
-    this.newPos = function () { //used to translate the current speed to the actual position
-        this.x += this.speedX;
-        this.y += this.speedY;
-    };
-    this.crashWith = function (otherobj) {
-        var myleft = this.x;
-        var myright = this.x + (this.width);
-        var mytop = this.y;
-        var mybottom = this.y + (this.height);
-        var otherleft = otherobj.x;
-        var otherright = otherobj.x + (otherobj.width);
-        var othertop = otherobj.y;
-        var otherbottom = otherobj.y + (otherobj.height);
-
-        //first the crash condition is set to true then its changed to false
-        //if its not colliding to anyhting then the crash value is chanaged to false
-        var crash = true;
-        if ((mybottom < othertop) ||
-            (mytop > otherbottom) ||
-            (myright < otherleft) ||
-            (myleft > otherright)) {
-            crash = false;
-        }
-        return crash;
-    }
-
+function mainMenu() {
+    ctx = gameArea.context;
+    ctx.font = "30px Arial";
+    ctx.strokeText("Welcome to Snake", 170, 50);
+    ctx.strokeText("Press the any of the arrow keys to start", 35, 300);
 }
 
-function updateGameArea() {
+function gameOver() {
+    gameState = "gameOver";
 
+    tailLength = 0;
+    startingPos = [300, 480]; // x, y
+    headPos = [];
+    headPos[0] = startingPos;
+    tailPiece = [];
+    move = [[0, 0]];
+    gameArea.stop();
+
+    ctx = gameArea.context;
+    ctx.font = "30px Arial";
+    ctx.strokeText("Game Over", 170, 50);
+    ctx.strokeText("Press the any of the arrow keys to start", 35, 300);
+}
+
+function startGame() {
+
+    snake = new Snake("black", startingPos[0], startingPos[1]); //this creates the snake
+    food = new Food("green", 180, 120); //this creates some food
+
+    gameArea.start();
+}
+
+function run() { //the order in which these things are place is quite important
+    console.log(gameState); //log in the console the game state
+    gameArea.clear();
+    if (gameState === "beforeStart") {
+        mainMenu()
+    }
+    else if (gameState === "gameOver") {
+        gameOver()
+    }
     //if the snake collides with the food then the foods pos i changes and a tailpiece is spawned
-    if (myGamePiece.crashWith(myObstacle)) {
-        myObstacle.x = setRandPos();
-        myObstacle.y = setRandPos();
-        spawnTail();
+    if (snake.eat(food)) {
+        food.newFood()
     }
 
-    myGameArea.clear();
-    myObstacle.update();
-    myGamePiece.newPos();
-    console.log(headPos.length);
+    food.update(); //refreshes the positon of food
+    checkMove(); //checks if the move its about to do is valid
+    snake.newPos();
 
-    if (headPos.length) { //used so that headPos is not accessed by tailMove() when its empty
-        tailMove();//check if the tail needs to move in this gametick
+    for (var i = 0; i < tailPiece.length; i++) {
+        tailPiece[i].newPos(i);
+        tailPiece[i].update()
     }
 
-    //this is used to update the position of every tail section
-    for (var i = 0; i < tailSections.length; i++) {
-        if (typeof tailSections[i] != 'undefined') {
-            tailSections[i].newPos();
-            tailSections[i].update();
+    snake.update();
+    checkCollision(); //this must be kept after the snake.newPos()
+}
+
+//basically there is always the current move stored in here, once a new one is entered then it is compared to see
+//if it is trying to go the opposite way than the current direction. If it is then the last move that is entered is
+//dicarded, otherwise the new move is added to the snake speed and then the first item of the array is removed
+//so that the new one is then set
+function checkMove() {
+    if (move.length > 1) { //this is just for error checking in the code
+
+        if (move[0][0] * move[1][0] === -1 || move[0][1] * move[1][1] === -1) {
+            //invalid move
+            move.pop() //then the last move is removed
+        } else {
+            snake.speedX = move[1][0];
+            snake.speedY = move[1][1];
+            move.shift();
         }
     }
+}
 
-    myGamePiece.update();
+function checkCollision() {
+    if (snake.x + snake.speedX > canvasSize || snake.x < 0 || snake.y < 0 || snake.y + snake.speedY > canvasSize) {
+        gameState = "game Over";
+        if (tailLength > highScore) {
+            highScore = tailLength
+        }
+        gameOver();
+    }
+    for (var i = 0; i < tailPiece.length; i++) {
+        if (snake.x === tailPiece[i].x && snake.y === tailPiece[i].y) {
+            gameState = "game Over";
+            if (tailLength > highScore) {
+                highScore = tailLength
+            }
+            gameOver();
+        }
+    }
 }
 
 function moveup() {
-    if (checkValidMove(myGamePiece.speedY, -maxSpeed)) { //checks if you can go faster
-
-        if (myGamePiece.speedY == 0 && myGamePiece.speedX ==0){ //this is for the beginning only if the head is still then also make the tail move
-            for (var i=0;i<tailSections.length;i++){
-                tailSections[i].speedY -= maxSpeed;
-            }
-        }else { //otherwise log it as a turn
-            headPos.push([myGamePiece.x, myGamePiece.y, "up"]);
-        }
-
-        myGamePiece.speedX = 0; //this is done to disable the opposite axis movement so that you cant move diagonally
-        myGamePiece.speedY -= maxSpeed;
-    }
+    move.push([0, -1]);
 }
 
 function movedown() {
-    if (checkValidMove(myGamePiece.speedY, maxSpeed)) {
-
-        headPos.push([myGamePiece.x, myGamePiece.y, "down"]);
-        myGamePiece.speedX = 0;
-        myGamePiece.speedY += maxSpeed;
-    }
+    move.push([0, 1]);
 }
 
 function moveleft() {
-    if (checkValidMove(myGamePiece.speedX, -maxSpeed)) {
-
-        headPos.push([myGamePiece.x, myGamePiece.y, "left"]); //log the heads position in this turn
-        myGamePiece.speedY = 0;
-        myGamePiece.speedX -= maxSpeed;
-    }
+    move.push([-1, 0]);
 }
 
 function moveright() {
-    if (checkValidMove(myGamePiece.speedX, maxSpeed)) {
+    move.push([1, 0]);
+}
 
-        headPos.push([myGamePiece.x, myGamePiece.y, "right"]);
-        myGamePiece.speedY = 0;
-        myGamePiece.speedX += maxSpeed;
+document.onkeydown = checkKey;
+
+function checkKey(e) {
+    e = e || window.event; //this is used for older browser compatibility
+    if (gameState === "gameOver") {
+        startGame()
+    }
+    gameState = "running";
+    if (e.keyCode === 38) {
+        moveup()
+    }
+    else if (e.keyCode === 40) {
+        movedown()
+    }
+    else if (e.keyCode === 37) {
+        moveleft()
+    }
+    else if (e.keyCode === 39) {
+        moveright()
     }
 }
 
-function tailMove() {//used to make the tail move in a direction at the right time
-    //console.log(headPos);
-    for (var i = 0; i < tailSections.length; i++) {
-        for (var k=0;k<headPos.length;k++){
-            if (tailSections[i].x == headPos[k][0] && tailSections[i].y == headPos[k][1]) { //of this tail section is in the heads previous turn position do this
-                tailDirection(headPos[k][2], i); //[0][2] stores the direction the head turned at those coordinates
-                if (i == tailSections.length-1){//this means that thi is the last piece of the tail so we should delete this turn position
-                    headPos.shift();        //remove the oldest turn move
-                }
-            }
-        }
+//this is used to stop the screen from scrolling up and down when the arrow keys are pressed
+window.addEventListener("keydown", function (e) {
+    // space and arrow keys
+    if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+        e.preventDefault();
     }
-}
+}, false);
 
-function tailDirection(direction, sectionNum) { //takes the tail section number
 
-    switch (direction) {
-        case "up":
-            tailSections[sectionNum].speedX = 0;
-            tailSections[sectionNum].speedY -= maxSpeed;
-            break;
-        case "down":
-            tailSections[sectionNum].speedX = 0;
-            tailSections[sectionNum].speedY += maxSpeed;
-            break;
-        case "left":
-            tailSections[sectionNum].speedY = 0;
-            tailSections[sectionNum].speedX -= maxSpeed;
-            break;
-        case "right":
-            tailSections[sectionNum].speedY = 0;
-            tailSections[sectionNum].speedX += maxSpeed;
-            break;
-        default:
-            console.log("invalid movement key")
-    }
-}
 
-function checkValidMove(currSpeed, n) { //this runs a check to see if we are allowed to go that fast
 
-    var x = currSpeed + n;
-    //maxspeed is set at the beginning
-    return (x >= -maxSpeed && x <= maxSpeed && x != 0);
 
-}
-
-function setRandPos() {
-    //this is used so that you dont get a position outside the canvas
-    var maxNumber = myGameArea.canvas.width - myGamePiece.width;
-
-    return Math.floor(Math.random() * maxNumber);
-}
-
-function spawnTail() { //this is all done so that the new tail part is spawned at the right spot
-
-    var headSize = myGamePiece.width; //this is to fetch the size of the head in px
-
-    if (myGamePiece.speedX > 0 && myGamePiece.speedX != 0) {
-        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x - headSize, myGamePiece.y));
-        tailSections[tailSections.length - 1].speedX += maxSpeed;
-    }
-    if (myGamePiece.speedX < 0 && myGamePiece.speedX != 0) {
-        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x + headSize, myGamePiece.y));
-        tailSections[tailSections.length - 1].speedX -= maxSpeed;
-    }
-    if (myGamePiece.speedY > 0 && myGamePiece.speedY != 0) {
-        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y - headSize));
-        tailSections[tailSections.length - 1].speedY += maxSpeed;
-    }
-    if (myGamePiece.speedY < 0 && myGamePiece.speedY != 0) {
-        tailSections.push(new component(headSize, headSize, "black", myGamePiece.x, myGamePiece.y + headSize));
-        tailSections[tailSections.length - 1].speedY -= maxSpeed;
-    }
-}
-
-function uniKeyCode(event) { //call the right result after the correct key is pressed
-    var key = event.keyCode;
-    switch (key) {
-        case 38:
-            moveup();
-            break;
-        case 40:
-            movedown();
-            break;
-        case 37:
-            moveleft();
-            break;
-        case 39:
-            moveright();
-            break;
-        default:
-            console.log("invalid movement key")
-    }
-}
