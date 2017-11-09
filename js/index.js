@@ -54,8 +54,8 @@ function gameOver() {
 
 function startGame() {
 
-    snake = new Snake("black", startingPos[0], startingPos[1]); //this creates the snake
-    food = new Food("green", 180, 120); //this creates some food
+    snake = new Snake('#C5C3C6', startingPos[0], startingPos[1]); //this creates the snake
+    food = new Food('#1985A1', 180, 120); //this creates some food
 
     gameArea.start();
 }

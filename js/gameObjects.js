@@ -25,7 +25,7 @@ function Snake(color, x, y) {
             if (tailLength >= headPos.length) { //this is because we want the array to match the length of the tail
                 headPos.push([this.x, this.y]);
             }
-            tailPiece.push(new Tail("black", headPos[tailLength][0], headPos[tailLength][1]));
+            tailPiece.push(new Tail(color, headPos[tailLength][0], headPos[tailLength][1]));
             tailLength++;
 
             return true; //yes the snake did eat the food
