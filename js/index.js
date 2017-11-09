@@ -1,11 +1,11 @@
 var pixelSize = 20;      //size of the squares in pixels
-var canvasSize = 600;    //size of the canvas in pixels needs to be a multiple of the pixel size
+var canvasSize = 500;    //size of the canvas in pixels needs to be a multiple of the pixel size
 var frameRate = 100; //how much time between frames
 var highScore = 0;
 
 var gameState = "beforeStart";//
 var tailLength = 0;
-var startingPos = [300, 480]; // x, y
+var startingPos = [300, 420]; // x, y
 var headPos = [];
 headPos[0] = startingPos;
 var tailPiece = [];
@@ -30,8 +30,8 @@ var gameArea = {
 
 function mainMenu() {
     ctx = gameArea.context;
-    ctx.font = "30px Arial";
-    ctx.strokeText("Welcome to Snake", 170, 50);
+    ctx.font = "25px Arial";
+    ctx.strokeText("Welcome to Snake", 140, 50);
     ctx.strokeText("Press the any of the arrow keys to start", 35, 300);
 }
 
