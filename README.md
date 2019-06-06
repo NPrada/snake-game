@@ -1,4 +1,4 @@
-# -SnakeGame
+# Snake Game
 
 Tecnologies Used: vanilla js, CSS, HTML and Canvas
 
